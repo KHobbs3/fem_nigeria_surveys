@@ -22,7 +22,6 @@ from src.data_loader import (
     load_fp_reason_use,
     load_fp_intent,
     load_fp_nonuse_reasons,
-    load_fp_unmet,
 )
 
 FEM_PALETTE = [FEM_ORANGE, FEM_BROWN, FEM_TAUPE, FEM_STEEL, FEM_NAVY]
@@ -188,46 +187,6 @@ def _mcpr_value(df_funnel, split_col="use", group_val="all"):
     return val if pd.notna(val) else None
 
 
-def _total_cpr_value(df_funnel, split_col="use", group_val="all"):
-    """Total contraceptive prevalence rate (any method, modern + traditional)
-    -- the funnel's current_use stage. Needed for the official DHS Demand
-    Satisfied formula (2026-09-03): mCPR / (total CPR + unmet need) --
-    NOT mCPR / (mCPR + unmet need), which silently drops traditional-method
-    users from the denominator even though they're correctly excluded from
-    the unmet-need numerator (their need counts as "met")."""
-    if df_funnel is None or df_funnel.empty:
-        return None
-    row = df_funnel[(df_funnel["split"] == split_col) & (df_funnel["group"] == group_val)]
-    if row.empty:
-        return None
-    val = row.iloc[0].get("current_use")
-    return val if pd.notna(val) else None
-
-
-def _unmet_bar_by_group(df_unmet, split_col, key):
-    sub = df_unmet[(df_unmet["split"] == split_col) & (df_unmet["group"] != "all")]
-    if sub.empty:
-        return
-    sub = sub.sort_values("unmet_need", ascending=False)
-    fig = go.Figure()
-    fig.add_bar(
-        name="Spacing-demand proxy", x=sub["group"].astype(str), y=sub["unmet_need"],
-        marker_color=FEM_BROWN,
-        text=[f"{v*100:.0f}%" for v in sub["unmet_need"]], textposition="outside",
-    )
-    fig.update_layout(
-        barmode="group",
-        yaxis=dict(tickformat=".0%", showgrid=False, title="% of respondents"),
-        xaxis=dict(showgrid=False),
-        plot_bgcolor="rgba(0,0,0,0)",
-        paper_bgcolor="rgba(0,0,0,0)",
-        margin=dict(t=20, b=40, l=10, r=10),
-        height=340,
-        legend_title=split_col,
-    )
-    st.plotly_chart(fig, use_container_width=True, key=key)
-
-
 # ── Funnel ────────────────────────────────────────────────────────────────────
 
 def render_funnel(df_funnel, split_col):
@@ -348,29 +307,6 @@ def render_funnel(df_funnel, split_col):
 
 # ── Section renderers ─────────────────────────────────────────────────────────
 
-def render_unmet(df_unmet, df_funnel, split_col):
-    st.subheader("Spacing demand (proxy)")
-    st.caption(
-        "A standard unmet-need or unmet-demand estimate cannot be calculated from "
-        "this Nigeria survey. The form asks only whether respondents want to space "
-        "children now or in the future; it does not ask the preferred timing of the "
-        "next pregnancy or the full fertility-preference questions required by the "
-        "DHS/FP2030 definition. The chart below is therefore only a spacing-demand "
-        "proxy, not an official unmet-need or unmet-demand measure."
-    )
-    if df_unmet is None or df_unmet.empty:
-        st.info("No spacing-demand proxy output is available for this region.")
-        return
-
-    overall = df_unmet[(df_unmet["split"] == split_col) & (df_unmet["group"] == "all")]
-    if not overall.empty:
-        row = overall.iloc[0]
-        st.metric("Spacing-demand proxy", f"{row['unmet_need']*100:.1f}%")
-
-    st.markdown("**Proxy by split**")
-    _unmet_bar_by_group(df_unmet, split_col, key=f"fp_unmet_{split_col}")
-
-
 def render_awareness_use(df_funnel, df_timing, df_reason, split_col):
     st.subheader("Awareness & use")
 
@@ -472,7 +408,6 @@ def render():
     df_reason  = load_fp_reason_use()
     df_intent  = load_fp_intent()
     df_nonuse  = load_fp_nonuse_reasons()
-    df_unmet   = load_fp_unmet()
 
     mcpr = _mcpr_value(df_funnel)
     if mcpr is not None:
@@ -495,7 +430,6 @@ def render():
     split_col = SPLIT_MAP[split_by]
 
     st.divider()
-    render_unmet(df_unmet, df_funnel, split_col)
     st.divider()
     render_awareness_use(df_funnel, df_timing, df_reason, split_col)
     st.divider()
