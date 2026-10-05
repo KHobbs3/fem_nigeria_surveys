@@ -13,6 +13,7 @@ DATA_ROOT = Path(os.environ.get("FEM_APP_DATA_ROOT", PROJECT_ROOT / "data"))
 
 NORTH_DRIVE_IDS = {
     "drivers_barriers.csv": "1Oya_jnBzgz-HvmwA9kbz7xma1U_A8k8v",
+    "personas_centroids_by_gender.csv": "1w4kiIqGcGqZQr7H_YbiikeiQjE6ZmSmI",
     "access_affordability.csv": "1i1dtZBQBCBFvodIeC7lwYCeb-P5QNVd3",
     "access_composite.csv": "1hbk5vA2gQCFeNqNqXZm1rFzChuTBJ5ay",
     "access_stockouts.csv": "1JD0pd7Aoqa1vr61dw9zEV4bZC0Bah8-c",
@@ -38,6 +39,7 @@ NORTH_DRIVE_IDS = {
 
 SOUTH_DRIVE_IDS = {
     "drivers_barriers.csv": "1kbAqsiHxE0SND7XXVRBw9yWTT8r2Rq79",
+    "personas_centroids_by_gender.csv": "1UraARC1aWpT4RQloMb6S2MCAHrWfbORu",
     "access_affordability.csv": "1hg21MpdWX6wloPnGmelMHTBRRWRnZryI",
     "access_composite.csv": "14kSwgAbL_tdolMpZdnKZhBBtSB716vqo",
     "access_stockouts.csv": "1wR7zFGgNgr47zV0meHeavR2Klsdwrh27",
@@ -64,6 +66,7 @@ SOUTH_DRIVE_IDS = {
 
 SOUTH_WEST_DRIVE_IDS = {
     "drivers_barriers.csv": "1X8oKvYzWS4vrulsBtXpxJ0WT0i-lKZOJ",
+    "personas_centroids_by_gender.csv": "1EWTVcY2g6-UwxpHCQCkteS3YQf5PanbT",
     "access_affordability.csv": "1CFBriweeLxGD9pAg0gi_TQJxoiZYsiiq",
     "access_composite.csv": "1yJfpqZ2YJf_HO7PPILAEEYZtrWDyrHnT",
     "access_stockouts.csv": "1e5lq0CC1S_8Yun3chocHw0oQ0eiweMU8",
@@ -104,7 +107,7 @@ def _load(filename, **kwargs):
     drive_ids = {
         "north": NORTH_DRIVE_IDS,
         "south": SOUTH_DRIVE_IDS,
-        "southwest": SOUTH_WEST_DRIVE_IDS,
+        "south_west": SOUTH_WEST_DRIVE_IDS,
     }.get(region, {})
     file_id = drive_ids.get(filename)
     if file_id is None:

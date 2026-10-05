@@ -490,7 +490,15 @@ weighted N) is shown for each persona. Individual-level data is not stored or di
         df_profile_s   = load_personas_profile_by_gender()
         df_elbow       = load_personas_elbow()
         label_map      = GENDER_DISPLAY
-        missing_msg    = _MISSING
+        missing_msg = (
+            "Gender-split persona data is unavailable for this region. "
+            "This view needs personas_centroids_by_gender.csv, "
+            "personas_profile_by_gender.csv, and personas_elbow.csv. "
+            "The overall personas_centroids.csv/personas_profile.csv files are "
+            "separate. Put the three gender-split files under "
+            "data/north/ (or the selected region folder), or add their Drive IDs "
+            "to src/data_loader.py."
+        )
         region_order   = None
     elif split_col == "region":
         df_centroids_s = load_personas_centroids_by_region()
@@ -499,11 +507,11 @@ weighted N) is shown for each persona. Individual-level data is not stored or di
         label_map      = {}
         region_order   = REGIONS
         missing_msg = (
-            "Pre-aggregated region-split persona data not found. "
-            "Run `python -m pipeline.run_pipeline --pages personas` (from pipeline_output/) "
-            "to generate it, then upload personas_centroids_by_region.csv / "
-            "personas_profile_by_region.csv / personas_elbow_by_region.csv to Drive and "
-            "wire the file IDs into src/data_loader.py."
+            "Region-split persona data is unavailable for this region. "
+            "This view needs personas_centroids_by_region.csv, "
+            "personas_profile_by_region.csv, and personas_elbow_by_region.csv "
+            "under the selected region's data folder, or corresponding Drive IDs "
+            "in src/data_loader.py."
         )
     if df_centroids_s is None or df_centroids_s.empty:
         st.warning(missing_msg)
