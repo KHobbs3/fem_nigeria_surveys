@@ -36,6 +36,8 @@ USE_LABELS = {
 GENDER_LABELS = {
     "Homme Sunnu": "Homme",
     "Femme Nyɔnu": "Femme",
+    "Male": "Male",
+    "Female": "Female",
 }
 
 

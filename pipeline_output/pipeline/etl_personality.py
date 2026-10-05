@@ -57,10 +57,10 @@ LIKERT = {
 # Raw bilingual values for yes/no responses, e.g. "Oui/ Ɛɛn", "Non/Eo".
 YESNO = {1: "Yes", 0: "No", -1: "Don't know", -2: "Prefer not to say"}
 YESNO_SEARCH = {
-    "Yes":              "Oui",
-    "No":               "Non",
-    "Don't know":       "Ne sais pas",
-    "Prefer not to say":"fère ne pas",  # matches "Préfère ne pas le dire"
+    "Yes":              "yes|oui",
+    "No":               "no|non",
+    "Don't know":       "don't know|ne sais pas|ban sani",
+    "Prefer not to say":"prefer not|préfère ne pas|ba na ce", 
 }
 
 
@@ -88,7 +88,7 @@ def _multiselect_long(df, col, label_map, tag, split_cols, search_patterns=None)
         out = {}
         for code, label in label_map.items():
             pattern = sp.get(label, label)
-            mask = data[col].str.contains(pattern, na=False, case=False, regex=False)
+            mask = data[col].str.contains(pattern, na=False, case=False, regex=True)
             out[label] = mask.mean()
         return pd.Series(out)
 

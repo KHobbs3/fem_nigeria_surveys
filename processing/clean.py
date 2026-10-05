@@ -185,13 +185,31 @@ def _canonicalize_columns(frame: pd.DataFrame, region: str, form_definition: str
             age, bins=[15, 20, 30, 45], labels=["16-20", "21-30", "31-45"], right=True
         )
 
-    usage_source = raw["Contraceptive_usage_female"] if "Contraceptive_usage_female" in raw else pd.Series(index=raw.index, dtype="float64")
-    usage = pd.to_numeric(usage_source, errors="coerce")
-    if usage.notna().any():
-        result["use"] = usage.map({1: "nonuser", 2: "future_user", 3: "user", 4: "past_user"})
-        result["current_use"] = usage.eq(3).map({True: "Oui", False: "Non"})
-        result["ever_use"] = usage.isin([3, 4]).map({True: "Oui", False: "Non"})
-        result["future_intent"] = usage.eq(2).map({True: "Oui", False: "Non"})
+    usage_columns = [
+        column for column in ("Contraceptive_usage_female", "Contraception_usage_male")
+        if column in raw.columns
+    ]
+    if usage_columns:
+        usage_source = raw[usage_columns].bfill(axis=1).iloc[:, 0]
+        usage_codes = pd.to_numeric(usage_source, errors="coerce")
+        usage_text = usage_source.astype("string").str.lower()
+        use_group = pd.Series(pd.NA, index=raw.index, dtype="string")
+        use_group.loc[usage_codes.eq(1) | usage_text.str.contains("do not intend|don't intend|ban da niyyar", na=False)] = "nonuser"
+        use_group.loc[usage_codes.eq(2) | usage_text.str.contains("plan to use|intend to use|ina son inyi amfani|muna da niyyar", na=False)] = "future_user"
+        use_group.loc[usage_codes.eq(3) | usage_text.str.contains("using contraception now|are using contraception now", na=False)] = "user"
+        use_group.loc[usage_codes.eq(4) | usage_text.str.contains("used contraception in the past|used in the past", na=False)] = "past_user"
+        result["use"] = use_group
+        result["current_use"] = use_group.eq("user").map({True: "Oui", False: "Non"})
+        result["ever_use"] = use_group.isin(["user", "past_user"]).map({True: "Oui", False: "Non"})
+        result["future_intent"] = use_group.eq("future_user").map({True: "Oui", False: "Non"})
+
+    if "spacing_desire" in result.columns:
+        spacing = result["spacing_desire"].astype("string").str.lower()
+        result["considered_use"] = np.select(
+            [spacing.str.contains(r"\byes\b|\beh\b|^1$", regex=True, na=False),
+             spacing.str.contains(r"\bno\b|a'a|^2$", regex=True, na=False)],
+            ["Yes", "No"], default=pd.NA,
+        )
 
     if "known_contraceptive_options" in result.columns:
         result["birth_spacing"] = result["known_contraceptive_options"].notna().map({True: "Oui", False: "Non"})

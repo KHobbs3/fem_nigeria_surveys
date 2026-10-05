@@ -431,7 +431,7 @@ def render_intent(df_intent, df_nonuse):
     col1, col2 = st.columns(2)
     for col_obj, question, title, key in [
         (col1, "future_intent",  "Intends to use contraception in future", "fp_intent"),
-        (col2, "considered_use", "Considered use (non-users)",             "fp_considered"),
+        (col2, "considered_use", "Desires to space children",             "fp_considered"),
     ]:
         with col_obj:
             st.markdown(f"**{title}**")

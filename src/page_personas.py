@@ -32,10 +32,14 @@ PROFILE_VARS = ["gender", "age_group", "use", "occupation", "religion", "life_go
 GENDER_DISPLAY = {
     "Femme Nyɔnu": "Femme",
     "Homme Sunnu": "Homme",
+    "Female": "Female",
+    "Male": "Male",
 }
 GENDER_COLORS = {
     "Femme Nyɔnu": FEM_ORANGE,
     "Homme Sunnu": FEM_NAVY,
+    "Female": FEM_ORANGE,
+    "Male": FEM_NAVY,
 }
 
 

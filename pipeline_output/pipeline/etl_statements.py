@@ -84,12 +84,17 @@ def run(df, statement_labels_path=None):
     df_melted["agreement"] = (
         df_melted["response"]
         .fillna("")
-        .map(lambda x: 1 if "d'accord" in str(x) else (-1 if "désaccord" in str(x) else 0))
+        .map(lambda x: 1 if re.search(r"d'accord|\bagree\b|\byarda\b", str(x), re.I)
+             else (-1 if re.search(r"désaccord|\bdisagree\b|\brashin yarda\b", str(x), re.I) else 0))
     )
 
     # Flag agrees and disagrees separately
-    df_melted["is_agree"] = df_melted["response"].fillna("").map(lambda x: "d'accord" in str(x))
-    df_melted["is_disagree"] = df_melted["response"].fillna("").map(lambda x: "désaccord" in str(x))
+    df_melted["is_agree"] = df_melted["response"].fillna("").map(
+        lambda x: bool(re.search(r"d'accord|\bagree\b|\byarda\b", str(x), re.I))
+    )
+    df_melted["is_disagree"] = df_melted["response"].fillna("").map(
+        lambda x: bool(re.search(r"désaccord|\bdisagree\b|\brashin yarda\b", str(x), re.I))
+    )
 
     # Load statement labels if available
     # NOTE: was ISO-8859-1 (matched Niger's statement_labels.csv export encoding);

@@ -50,12 +50,6 @@ K_MAX = 6             # maximum k to test for elbow plot / auto-detection
 # clustering variable, so no equivalent exclusion is needed for the region split.
 VARS_FOR_CLUSTERING_GENDER = [v for v in VARS_FOR_CLUSTERING if v != "gender"]
 
-GENDER_LABELS = {
-    "female": "Femme Nyɔnu",
-    "male":   "Homme Sunnu",
-}
-
-
 # ── Feature engineering ──────────────────────────────────────────────────────
 
 # 2026-09-04: Fon uses IPA Extensions letters (ɖ, ɔ, ɛ, ɥ, ...) that never
@@ -558,12 +552,13 @@ def run(df):
     if gender_col not in df.columns:
         print("  [personas] WARNING: 'gender' column not found — skipping gender split.")
     else:
-        for short_key, gender_val in GENDER_LABELS.items():
+        gender_values = [value for value in df[gender_col].dropna().unique()]
+        for gender_val in gender_values:
             df_g = df[df[gender_col] == gender_val].copy()
             if df_g.empty:
                 print(f"  [personas] WARNING: no rows for gender='{gender_val}', skipping.")
                 continue
-            print(f"  [personas] clustering {short_key} (n={len(df_g)})...")
+            print(f"  [personas] clustering gender={gender_val} (n={len(df_g)})...")
             c_df, p_rows, e_rows = _cluster_gender(df_g, gender_val, KModes)
             all_centroids.append(c_df)
             all_profile_rows.extend(p_rows)
