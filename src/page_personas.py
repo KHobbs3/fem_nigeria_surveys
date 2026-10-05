@@ -10,9 +10,6 @@ from src.data_loader import (
     load_personas_centroids_by_gender,
     load_personas_profile_by_gender,
     load_personas_elbow,
-    load_personas_centroids_by_region,
-    load_personas_profile_by_region,
-    load_personas_elbow_by_region,
     load_culture_clusters_centroids,
     load_culture_clusters_profile,
     load_culture_clusters_elbow,
@@ -450,21 +447,19 @@ categorical data. Unlike k-means, k-modes uses modes (most frequent values) rath
 means as cluster centres, and measures dissimilarity by the number of mismatching
 categories between observations — making it well-suited to survey responses.
 
-**Clustering is run separately within each group of a split** (gender, or region) so
-that within-group variation drives the clusters rather than the split variable itself.
+The app already selects one independently sampled regional survey. Within that
+selected survey, clustering is shown overall and split by gender; regions are not
+pooled or treated as subgroups in this page.
 
 **Clustering variables:** age, occupation, religion, life goals, top driver (main reason
 for using contraception, among users), and top barrier (main reason for not using, among
-non-users) — plus gender itself, when splitting by region, since gender isn't dropped there
-the way it is for the gender split.
+non-users). Gender is excluded from the gender-specific clustering features because it
+is constant within each gender group.
 
 **Configuration:** initialised using the Cao method (which selects starting centroids
 based on category frequency distributions to reduce sensitivity to random starting
 points), with 5 independent runs to improve stability. Results are fully reproducible
-(fixed random seed). The gender split and overall clustering use a fixed 3 clusters;
-region splits (both 4-way and North/South) instead auto-select k per region from that
-region's own elbow curve (2 vs. 3+ clusters is a real difference between regions, not
-just noise — see the elbow plot below).
+(fixed random seed). Overall and gender-specific clustering use 3 clusters.
 
 **Output:** Each persona represents the modal respondent within a cluster — the
 combination of attribute values that best characterises that group. Cluster size (N and
@@ -474,45 +469,17 @@ weighted N) is shown for each persona. Individual-level data is not stored or di
 
     st.subheader("Personas by group")
 
-    # ── Split selector: gender or separately sampled survey region ────────────
-    split_choice = st.radio(
-        "Split personas by",
-        ["Gender", "Region"],
-        horizontal=True,
+    split_col = "gender"
+    df_centroids_s = load_personas_centroids_by_gender()
+    df_profile_s   = load_personas_profile_by_gender()
+    df_elbow       = load_personas_elbow()
+    label_map      = GENDER_DISPLAY
+    missing_msg = (
+        "Gender-split persona data is unavailable for the selected regional survey. "
+        "This view needs personas_centroids_by_gender.csv, "
+        "personas_profile_by_gender.csv, and personas_elbow.csv in that region's "
+        "data folder or configured Drive IDs."
     )
-    split_col = {
-        "Gender": "gender",
-        "Region": "region",
-    }[split_choice]
-
-    if split_col == "gender":
-        df_centroids_s = load_personas_centroids_by_gender()
-        df_profile_s   = load_personas_profile_by_gender()
-        df_elbow       = load_personas_elbow()
-        label_map      = GENDER_DISPLAY
-        missing_msg = (
-            "Gender-split persona data is unavailable for this region. "
-            "This view needs personas_centroids_by_gender.csv, "
-            "personas_profile_by_gender.csv, and personas_elbow.csv. "
-            "The overall personas_centroids.csv/personas_profile.csv files are "
-            "separate. Put the three gender-split files under "
-            "data/north/ (or the selected region folder), or add their Drive IDs "
-            "to src/data_loader.py."
-        )
-        region_order   = None
-    elif split_col == "region":
-        df_centroids_s = load_personas_centroids_by_region()
-        df_profile_s   = load_personas_profile_by_region()
-        df_elbow       = load_personas_elbow_by_region()
-        label_map      = {}
-        region_order   = REGIONS
-        missing_msg = (
-            "Region-split persona data is unavailable for this region. "
-            "This view needs personas_centroids_by_region.csv, "
-            "personas_profile_by_region.csv, and personas_elbow_by_region.csv "
-            "under the selected region's data folder, or corresponding Drive IDs "
-            "in src/data_loader.py."
-        )
     if df_centroids_s is None or df_centroids_s.empty:
         st.warning(missing_msg)
         return
@@ -524,12 +491,6 @@ weighted N) is shown for each persona. Individual-level data is not stored or di
 
     # ── Split tabs ────────────────────────────────────────────────────────────
     groups_in_data = df_centroids_s[split_col].unique().tolist()
-    if region_order:
-        # Prefer the canonical region order over whatever order they appear
-        # in the data (North-East/North-West/South-South/Mid-South, or
-        # North/South).
-        groups_in_data = [g for g in region_order if g in groups_in_data] + \
-                         [g for g in groups_in_data if g not in region_order]
     tab_labels = [tr(label_map.get(g, g)) for g in groups_in_data]
     tabs = st.tabs(tab_labels)
 
